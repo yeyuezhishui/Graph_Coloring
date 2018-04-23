@@ -1,17 +1,4 @@
 
-/*
-*********当前：3.25___定义压缩矩阵图的存储结构，载入点集，边集
-下一步：定义颜色集合表 、相邻颜色表、每一个颜色集合里的冲突表，初始化他们
-*********当前：3.31___定义并初始化颜色集合表，相邻颜色表，调试结果正确
-下一步：根据相邻颜色表生成冲突表：每个颜色集合一个表？第一个元素记录冲突个数？
-                             二维数组结点表？每个记录和其他结点是否冲突？
-							 领域结构域怎么找？
-							 用颜色集合更好找领域结构。
-
-
-*/
-
-
 #include <stdio.h>
 #include <time.h>
 #include <windows.h>
@@ -64,7 +51,6 @@ int main(void)
 		itter++;
 	}
 	Print_solution();
-	printf("%d", conflict_table[1]);
 	system("pause");
 	return 0;
 }
@@ -174,7 +160,7 @@ void Find_Move()
 				continue;//不会移到自己的颜色
 			}
 			current_delta_f = Adjacent_Color_table[i][own_color] - Adjacent_Color_table[i][color];
-			if (Tabu_table[i][color] > itter && current_delta_f <= best_delta_f_ever)
+			if (Tabu_table[i][color] >= itter && current_delta_f <= best_delta_f_ever)
 			{
 				break;
 			}
@@ -186,7 +172,7 @@ void Find_Move()
 				best_f[1] = own_color;
 				best_f[2] = color;
 			}
-			if (current_delta_f > best_delta_f_ever)
+			if (current_delta_f > best_delta_f_ever)//解禁 
 			{
 				best_delta_f_ever = current_delta_f;
 			}
@@ -216,6 +202,12 @@ void Make_Move()//实施移动
 	Color_Set[former_color][move_node] = 0;
 	Color_Set[new_color][move_node] = 1;
 	Adjacent_Color_table[move_node][0] = new_color;
+	if (Adjacent_Color_table[move_node][former_color] != 0 && Adjacent_Color_table[move_node][new_color] == 0)
+        {
+			location = conflict_location[move_node];
+			conflict_table[location] = 0;
+			conflict_table[0] -= 1;        	
+		}
 	for (; current_adjacent <= NODE; current_adjacent++)
 	{
 		if (current_adjacent == move_node)
@@ -236,7 +228,7 @@ void Make_Move()//实施移动
 			conflict_table[location] = 0;
 			conflict_table[0] -= 1;
 		}
-
+        
 		//在冲突表中添加新的冲突结点
 		int blank_location = 1;
 		if (Graph[move_node][current_adjacent] == 1 && Adjacent_Color_table[current_adjacent][0] == new_color && Adjacent_Color_table[current_adjacent][new_color] == 1)
